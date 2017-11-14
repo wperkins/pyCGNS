@@ -90,7 +90,7 @@ except OSError:
 
 APP = True
 MAP = True
-WRA = False
+WRA = True
 MAP = True
 PAT = True
 VAL = True

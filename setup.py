@@ -70,6 +70,14 @@ doc2 = """
 
 """
 
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 pr = argparse.ArgumentParser(description=doc1, epilog=doc2,
                              formatter_class=argparse.RawDescriptionHelpFormatter,
                              usage='python %(prog)s [options] file1 file2 ...')
@@ -83,19 +91,32 @@ pr.add_argument("-U", "--update", action='store_true',
 pr.add_argument("-g", "--generate", action='store_true',
                 help='force Qt/creator .pyx files to be regenerated')
 
+modules = {"app":True, "map":True, "pat":True, "val":True,
+           "dat":True, "nav":True}
+
+for name, val in modules.items():
+    pr.add_argument("--" + name, type=str2bool, default=val,
+                    help='enable/disable building of CGNS.' + name.upper())
+
+# Remove modules from command-line arguments
+pr1 = argparse.ArgumentParser()
+for name, val in modules.items():
+    pr1.add_argument("--" + name, type=str2bool, default=val)
+
+args1, unknown = pr1.parse_known_args()
+sys.argv = sys.argv[:1] + unknown
+
 try:
     os.makedirs('./build/lib/CGNS')
 except OSError:
     pass
 
-APP = True
-MAP = True
-WRA = True
-MAP = True
-PAT = True
-VAL = True
-DAT = True
-NAV = True
+APP = args1.app
+MAP = args1.map
+PAT = args1.pat
+VAL = args1.val
+DAT = args1.dat
+NAV = args1.nav
 
 ALL_PACKAGES = []
 ALL_SCRIPTS = []
@@ -287,40 +308,6 @@ if PAT:
     modules += "\n# PAT   add  build"
 else:
     modules += "\n# PAT   skip build *"
-
-# -------------------------------------------------------------------------  
-if (WRA and CONFIG.HAS_MLL and CONFIG.HAS_CYTHON_2PLUS):
-
-    # --- config values
-    hdfplib = CONFIG.HDF5_PATH_LIBRARIES
-    hdflib = CONFIG.HDF5_LINK_LIBRARIES
-    hdfpinc = CONFIG.HDF5_PATH_INCLUDES
-    hdfversion = CONFIG.HDF5_VERSION
-    mllplib = CONFIG.MLL_PATH_LIBRARIES
-    mlllib = CONFIG.MLL_LINK_LIBRARIES
-    mllpinc = CONFIG.MLL_PATH_INCLUDES
-    mllversion = CONFIG.MLL_VERSION
-
-    lname = "CGNS.WRA"
-
-    extraargs = CONFIG.MLL_EXTRA_ARGS
-    include_dirs = CONFIG.INCLUDE_DIRS + ['WRA/modadf']
-    library_dirs = CONFIG.LIBRARY_DIRS
-    optional_libs = mlllib + hdflib
-
-    ALL_PACKAGES += ['CGNS.WRA', 'CGNS.WRA.test']
-
-    if CONFIG.HAS_CYTHON:
-        ALL_EXTENSIONS += [Extension('CGNS.WRA.mll', ['CGNS/WRA/mll.pyx',
-                                                      'CGNS/WRA/mll_utils.c'],
-                                     include_dirs=include_dirs + ['WRA'],
-                                     library_dirs=library_dirs,
-                                     libraries=optional_libs,
-                                     extra_compile_args=extraargs)]
-
-    modules += "\n# WRA   add  build"
-else:
-    modules += "\n# WRA   skip build *"
 
 # -------------------------------------------------------------------------  
 if DAT:

@@ -27,9 +27,6 @@ A Python package for CGNS
   <td align="center" valign="middle"><a href="VAL/_index.html">
     <img src="images/VAL-logo-small.png" height="48" alt="VAL"/></a></td>
 
-  <td align="center" valign="middle"><a href="WRA/_index.html">
-      <img src="images/WRA-logo-small.png" height="48" alt="WRA"/></a></td>
-
   <td align="center" valign="middle"><a href="DAT/_index.html">
     <img src="images/DAT-logo-small.png" height="48" alt="DAT"/></a></td>
 
@@ -52,6 +49,7 @@ actual CFD data!
 
    - Embedded CHLone (CGNS/HDF5 mapping)
    - Windows version update
+   - Python 3.6 support
 
 There are seven sub-modules in
 *pyCGNS*, some of them are libraries of functions, some other are
@@ -59,9 +57,6 @@ tools and some are gathering various scripts and examples.
 The *MAP* and *PAT* modules are the most important modules, they map the 
 :term:`CGNS/SIDS` data model as :term:`CGNS/Python` implementation and
 provide manipulation function for it.
-The *WRA* module contains a wrapper on :term:`CGNS/MLL`
-and a *MLL-like* set of functions that uses the
-:term:`CGNS/Python` mapping as implementation.
 The *NAV* module supports the *CGNS.NAV* graphical browser, with nice
 features about tree exploration, copy/paste and even global node changes.
 Then, the *VAL* module is a parser 
@@ -80,11 +75,11 @@ instead of :term:`CGNS/MLL` to map its :term:`CGNS/Python` trees to *HDF5*.
 .. note::
   The *pyCGNS* python package is released 
   under `LGPL2 license <http://opensource.org/licenses/lgpl-2.1>`_ and hosted 
-  by `sourceforge <http://sourceforge.net/projects/pycgns>`_
+  by `github <http://github.com/pyCGNS/pyCGNS>`_
   where you can find there the
-  `source download <http://sourceforge.net/projects/pycgns/files>`_.
+  `source download <http://github.com/pyCGNS/pyCGNS/releases>`_.
 
-The listed chapters are the introduction chapters, each MAP, PAT, WRA, 
+The listed chapters are the introduction chapters, each MAP, PAT,
 NAV, VAL module has its own documentation which doesn't appear below.
 Click on the modules icons above to get their documentation.
 

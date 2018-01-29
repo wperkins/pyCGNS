@@ -1197,7 +1197,7 @@ static int s2p_getData(PyArrayObject *dobject,
 	char **dtype, int *ddims, int *dshape, char **dvalue,
 	int reversedims, int transposedata, s2p_ctx_t  *context)
 {
-	int n = 0, total = 1;
+	int n = 0;
 	int pshape = 1;
 
 	ddims[0] = 0;
@@ -1216,17 +1216,18 @@ static int s2p_getData(PyArrayObject *dobject,
 		ddims[0] = PyArray_NDIM(dobject);
 		transposedata = !is_fortran_contiguous(dobject);
 		/* S2P_TRACE(("\n# CHL:is_fortran_contiguous : %d\n",transposedata)); */
-		for (n = 0; n < ddims[0]; n++)
+		if (transposedata || reversedims)
 		{
-			if (transposedata || reversedims)
+			for (n = 0; n < ddims[0]; n++)
 			{
 				dshape[n] = (int)PyArray_DIM(dobject, ddims[0] - n - 1);
-				total *= dshape[ddims[0] - n - 1];
 			}
-			else
+		}
+		else
+		{
+			for (n = 0; n < ddims[0]; n++)
 			{
 				dshape[n] = (int)PyArray_DIM(dobject, n);
-				total *= dshape[n];
 			}
 		}
 		if (transposedata)
@@ -1258,38 +1259,33 @@ static int s2p_getData(PyArrayObject *dobject,
 		return 0;
 	}
 
+	switch(PyArray_TYPE(dobject))
+	{
 	/* --- Integer */
-	if (PyArray_Check(dobject) && (PyArray_TYPE(dobject) == NPY_INT32))
-	{
+	case NPY_INT32:
 		*dtype = DT_I4;
-		return 1;
-	}
+		break;
 	/* --- Long */
-	if (PyArray_Check(dobject) && (PyArray_TYPE(dobject) == NPY_INT64))
-	{
+	case NPY_INT64:
 		*dtype = DT_I8;
-		return 1;
-	}
+		break;
 	/* --- Float */
-	if ((PyArray_Check(dobject) && (PyArray_TYPE(dobject) == NPY_FLOAT32)))
-	{
+	case NPY_FLOAT32:
 		*dtype = DT_R4;
-		return 1;
-	}
+		break;
 	/* --- Double */
-	if ((PyArray_Check(dobject) && (PyArray_TYPE(dobject) == NPY_FLOAT64)))
-	{
+	case NPY_FLOAT64:
 		*dtype = DT_R8;
-		return 1;
-	}
+		break;
 	/* --- String */
-	if ((PyArray_Check(dobject) && (PyArray_TYPE(dobject) == NPY_STRING)))
-	{
+	case NPY_STRING:
 		*dtype = DT_C1;
-		return 1;
+		break;
+	default:
+		S2P_TRACE(("\n# CHL: ERROR - numpy array dtype not in [C1,I4,I8,R4,R8]\n"));
+		return 0;
 	}
-	S2P_TRACE(("\n# CHL: ERROR - numpy array dtype not in [C1,I4,I8,R4,R8]\n"));
-	return 0;
+	return 1;
 }
 /* ------------------------------------------------------------------------- */
 static int s2p_hasToReverseDims(char *name, char *label, s2p_ctx_t *context)
@@ -1890,35 +1886,37 @@ static PyObject* s2p_parseAndReadHDF(L3_Node_t   *anode,
 				}
 			}
 		}
-		if ((rnode->dtype == L3E_I4) || (rnode->dtype == L3E_I4ptr))
+		switch(rnode->dtype)
 		{
+		case L3E_I4:
+		case L3E_I4ptr:
 			arraytype = NPY_INT32;
 			memsize = sizeof(int)*tsize;
-		}
-		else if ((rnode->dtype == L3E_C1) || (rnode->dtype == L3E_C1ptr))
-		{
+			break;
+		case L3E_C1:
+		case L3E_C1ptr:
 			arraytype = NPY_CHAR;
 			memsize = sizeof(char)*tsize;
-		}
-		else if ((rnode->dtype == L3E_R8) || (rnode->dtype == L3E_R8ptr))
-		{
+			break;
+		case L3E_R8:
+		case L3E_R8ptr:
 			arraytype = NPY_FLOAT64;
 			memsize = sizeof(double)*tsize;
-		}
-		else if ((rnode->dtype == L3E_I8) || (rnode->dtype == L3E_I8ptr))
-		{
+			break;
+		case L3E_I8:
+		case L3E_I8ptr:
 			arraytype = NPY_INT64;
 			memsize = sizeof(long)*tsize;
-		}
-		else if ((rnode->dtype == L3E_R4) || (rnode->dtype == L3E_R4ptr))
-		{
+			break;
+		case L3E_R4:
+		case L3E_R4ptr:
 			arraytype = NPY_FLOAT32;
 			memsize = sizeof(float)*tsize;
-		}
-		else
-		{
+			break;
+		default:
 			arraytype = -1;
 			memsize = 0;
+			break;
 		}
 		LEAVE_NOGIL_BLOCK();
 		if (arraytype != -1)
